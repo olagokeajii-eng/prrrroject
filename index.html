@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="LAGOS TRAFFIC RUNNER - Car Dash: 3D endless runner dodging Danfo yellow buses, BRT, Keke NAPEP, and LASTMA police checkpoints on Lagos highways!">
+  <meta name="theme-color" content="#ffd700">
+  <title>LAGOS TRAFFIC RUNNER - Car Dash</title>
+
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Game CSS -->
+  <link rel="stylesheet" href="css/game.css">
+</head>
+<body>
+  <div id="game-app">
+    <!-- 3D Three.js Canvas Container -->
+    <div id="game-canvas-container"></div>
+
+    <!-- HUD (Heads-Up Display) -->
+    <div id="game-hud" style="display: none;">
+      <!-- Top Status Bar -->
+      <div class="hud-top-bar">
+        <!-- Coin Counter -->
+        <div class="hud-stat-box coin-box">
+          <span class="coin-icon">💰</span>
+          <div>
+            <span class="coin-val display-coins-balance">₦0</span>
+            <span class="run-coin-inc" id="hud-run-coins">+₦0</span>
+          </div>
+        </div>
+
+        <!-- Center: Speedometer & Distance -->
+        <div class="hud-center-cluster">
+          <div class="speedometer-widget">
+            <span class="speed-digital" id="hud-speed-value">0</span>
+            <span class="speed-unit">KM / H</span>
+          </div>
+          <div class="score-distance-box">
+            <span>Score: <strong id="hud-score-value">0</strong></span>
+            <span>Distance: <strong id="hud-distance-value">0m</strong></span>
+          </div>
+        </div>
+
+        <!-- Right Controls: Audio & Pause -->
+        <div class="hud-actions">
+          <button class="btn-icon-hud" id="btn-mute-sound" title="Toggle Sound">🔊</button>
+          <button class="btn-icon-hud" id="btn-mute-music" title="Toggle Music">🎵</button>
+          <button class="btn-icon-hud" id="btn-pause" title="Pause Game">⏸</button>
+        </div>
+      </div>
+
+      <!-- Timed Delivery Tracker (Mission Mode) -->
+      <div id="hud-mission-tracker">
+        <div class="mission-tracker-header">
+          <span id="hud-mission-name">Ikeja Suya Express</span>
+          <span id="hud-mission-timer">60s</span>
+        </div>
+        <div class="mission-progress-bar-wrap">
+          <div id="hud-mission-progress-bar"></div>
+        </div>
+      </div>
+
+      <!-- Active Powerup Badges (Left Side) -->
+      <div id="hud-active-powerups"></div>
+
+      <!-- Mobile Touch Controls -->
+      <div id="mobile-controls">
+        <div class="ctrl-side-cluster">
+          <button class="btn-touch-ctrl" id="btn-ctrl-left">
+            ◀
+            <span>LEFT</span>
+          </button>
+          <button class="btn-touch-ctrl" id="btn-ctrl-right">
+            ▶
+            <span>RIGHT</span>
+          </button>
+        </div>
+
+        <button class="btn-touch-ctrl btn-horn-special" id="btn-ctrl-horn">
+          📢
+          <span>HORN</span>
+        </button>
+
+        <div class="ctrl-side-cluster">
+          <button class="btn-touch-ctrl" id="btn-ctrl-jump">
+            ▲
+            <span>JUMP</span>
+          </button>
+          <button class="btn-touch-ctrl" id="btn-ctrl-slide">
+            ▼
+            <span>SLIDE</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Menu Overlay -->
+    <div id="main-menu-overlay">
+      <!-- Header Bar -->
+      <div class="menu-header-bar">
+        <div class="game-title-group">
+          <h1>LAGOS TRAFFIC RUNNER</h1>
+          <span class="title-sub">CAR DASH & OKADA STREET RACER</span>
+        </div>
+        <div class="hud-stat-box coin-box">
+          <span class="coin-icon">💰</span>
+          <span class="coin-val display-coins-balance">₦1,000</span>
+        </div>
+      </div>
+
+      <!-- Center Play Button -->
+      <div class="menu-center-action">
+        <button class="btn-main-play" id="btn-play-endless">
+          <span>⚡ START ENDLESS DASH</span>
+        </button>
+        <p style="font-size: 13px; color: var(--text-muted); font-weight: 600;">
+          Dodge Danfo Buses, BRT, LASTMA Checkpoints & Potholes!
+        </p>
+      </div>
+
+      <!-- Bottom Navigation Grid -->
+      <div class="menu-bottom-nav">
+        <button class="nav-card-btn" id="btn-open-garage">
+          <span class="nav-icon">🏍️</span>
+          <span>OKADA GARAGE</span>
+        </button>
+        <button class="nav-card-btn" id="btn-open-maps">
+          <span class="nav-icon">🗺️</span>
+          <span>LAGOS ROUTES</span>
+        </button>
+        <button class="nav-card-btn" id="btn-open-missions">
+          <span class="nav-icon">📦</span>
+          <span>DELIVERY MISSIONS</span>
+        </button>
+        <button class="nav-card-btn" id="btn-open-daily">
+          <span class="nav-icon">🎯</span>
+          <span>DAILY BOUNTIES</span>
+        </button>
+        <button class="nav-card-btn" id="btn-open-scores">
+          <span class="nav-icon">🏆</span>
+          <span>HALL OF FAME</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- MODAL 1: GARAGE -->
+    <div class="game-modal" id="modal-garage">
+      <div class="modal-content-card">
+        <div class="modal-header">
+          <h2>🏍️ OKADA GARAGE & UPGRADES</h2>
+          <button class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 16px; color: var(--danfo-yellow);">Select Your Machine</h3>
+            <div class="coin-val display-coins-balance" style="font-size: 16px;">₦0</div>
+          </div>
+          <!-- Bikes Grid -->
+          <div class="bikes-grid" id="garage-bikes-list"></div>
+
+          <!-- Upgrades Section -->
+          <h3 style="font-size: 16px; color: var(--cyber-cyan); margin-top: 10px;">⚡ Performance & Power-up Upgrades</h3>
+          <div id="garage-upgrades-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+
+          <!-- Helmets Section -->
+          <h3 style="font-size: 16px; color: var(--lagos-emerald); margin-top: 10px;">🪖 Helmets & Street Gear</h3>
+          <div class="helmets-grid" id="garage-helmets-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: MAP ROUTES -->
+    <div class="game-modal" id="modal-maps">
+      <div class="modal-content-card">
+        <div class="modal-header">
+          <h2>🗺️ LAGOS ROUTE SELECTOR</h2>
+          <button class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted);">
+            Choose your Lagos highway sector. Each map features unique traffic density, road widths, and visual scenery!
+          </p>
+          <div class="maps-grid" id="maps-list-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 3: DELIVERY MISSIONS -->
+    <div class="game-modal" id="modal-missions">
+      <div class="modal-content-card">
+        <div class="modal-header">
+          <h2>📦 TIMED DELIVERY MISSIONS</h2>
+          <button class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted);">
+            Lagos courier dispatch mode! Race against the clock to deliver hot suya, cargo, and medical packages through go-slow.
+          </p>
+          <div class="missions-list" id="missions-list-container"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 4: DAILY BOUNTIES -->
+    <div class="game-modal" id="modal-daily">
+      <div class="modal-content-card">
+        <div class="modal-header">
+          <h2>🎯 DAILY STREET BOUNTIES</h2>
+          <button class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-muted);">
+            Fresh bounties generated every 24 hours. Complete tasks to claim massive Naira coin payouts!
+          </p>
+          <div class="daily-list" id="daily-missions-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 5: HALL OF FAME -->
+    <div class="game-modal" id="modal-scores">
+      <div class="modal-content-card">
+        <div class="modal-header">
+          <h2>🏆 LAGOS HIGH SCORE LEADERBOARD</h2>
+          <button class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="highscores-table" id="highscores-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 6: PAUSE MENU -->
+    <div class="game-modal" id="modal-pause">
+      <div class="modal-content-card" style="max-width: 440px;">
+        <div class="modal-header">
+          <h2>⏸ GAME PAUSED</h2>
+          <button class="btn-close-modal">✕</button>
+        </div>
+        <div class="modal-body" style="gap: 12px;">
+          <button class="btn-primary-card" id="btn-resume">RESUME DASH</button>
+          <button class="btn-primary-card" id="btn-restart">RESTART RUN</button>
+          <button class="btn-primary-card" id="btn-quit-menu" style="color: var(--danger-red);">QUIT TO MENU</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 7: GAME OVER -->
+    <div class="game-modal" id="modal-gameover">
+      <div class="modal-content-card" style="max-width: 480px;">
+        <div class="modal-header" style="border-bottom-color: rgba(255, 51, 102, 0.4);">
+          <h2 style="color: var(--danger-red);">💥 CRASHED!</h2>
+        </div>
+        <div class="modal-body">
+          <p id="go-cause-text" style="font-size: 16px; font-weight: 800; color: var(--danfo-yellow); text-align: center;">
+            Smashed by Danfo Bus!
+          </p>
+
+          <div class="summary-stats-grid">
+            <div class="stat-metric-card">
+              <span>SCORE</span>
+              <strong id="go-score-text">0</strong>
+            </div>
+            <div class="stat-metric-card">
+              <span>DISTANCE</span>
+              <strong id="go-distance-text">0m</strong>
+            </div>
+            <div class="stat-metric-card">
+              <span>COINS EARNED</span>
+              <strong id="go-coins-text" style="color: var(--danfo-yellow);">₦0</strong>
+            </div>
+          </div>
+
+          <!-- Rewarded AdMob Simulation Buttons -->
+          <button class="btn-revive-reward" id="btn-revive-ad">
+            <span>📺 WATCH AD TO REVIVE (+LASTMA Shield)</span>
+          </button>
+          <button class="btn-double-reward" id="btn-double-coins-ad">
+            <span>💰 WATCH AD TO DOUBLE RUN COINS (2X)</span>
+          </button>
+
+          <div class="gameover-actions">
+            <button class="btn-primary-card" id="btn-play-again" style="background: var(--lagos-green);">RUN AGAIN</button>
+            <button class="btn-primary-card" id="btn-gameover-menu">MAIN MENU</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 8: MISSION COMPLETE -->
+    <div class="game-modal" id="modal-mission-complete">
+      <div class="modal-content-card" style="max-width: 480px;">
+        <div class="modal-header" style="border-bottom-color: rgba(0, 135, 81, 0.4);">
+          <h2 style="color: var(--lagos-emerald);">🎉 DELIVERY SUCCESS!</h2>
+        </div>
+        <div class="modal-body" style="text-align: center;">
+          <h3 id="mc-mission-name" style="font-size: 20px; color: var(--danfo-yellow); margin-bottom: 8px;">
+            Ikeja Suya Express
+          </h3>
+          <div id="mc-stars-text" style="font-size: 32px; margin-bottom: 12px;">⭐⭐⭐</div>
+          
+          <div class="summary-stats-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="stat-metric-card">
+              <span>TIME TAKEN</span>
+              <strong id="mc-time-text">42.5s</strong>
+            </div>
+            <div class="stat-metric-card">
+              <span>PAYOUT</span>
+              <strong id="mc-reward-text" style="color: var(--danfo-yellow);">+₦2,000</strong>
+            </div>
+          </div>
+
+          <div class="gameover-actions" style="margin-top: 14px;">
+            <button class="btn-primary-card" id="btn-mission-next" style="background: var(--lagos-green);">NEXT MISSION</button>
+            <button class="btn-primary-card" id="btn-mission-menu">MAIN MENU</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 9: REWARDED ADMOB / ADSENSE SIMULATION -->
+    <div class="game-modal" id="modal-rewarded-ad">
+      <div class="modal-content-card" style="max-width: 440px;">
+        <div class="modal-body" style="padding: 24px;">
+          <div class="ad-video-mockup">
+            <span style="font-size: 11px; letter-spacing: 2px; color: var(--text-muted); font-weight: 800;">SPONSORED ADVERTISEMENT</span>
+            <div class="ad-spinner"></div>
+            <h3 id="ad-sponsor-title">DANFO EXPRESS TELECOM</h3>
+            <p style="font-size: 13px; color: var(--text-muted);">
+              Instant 4G Data bundles across all 36 states in Nigeria!
+            </p>
+            <span id="ad-countdown-timer" style="font-size: 18px; font-weight: 800; color: var(--danfo-yellow);">
+              Ad playing: 5s
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Pipeline (Offline Three.js + Lagos Engine) -->
+  <script src="lib/three.min.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/models.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
